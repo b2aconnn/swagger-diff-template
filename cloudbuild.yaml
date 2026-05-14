@@ -1,0 +1,81 @@
+steps:
+  # ── Step 1: Build & Test ────────────────────────────────────
+  - name: 'eclipse-temurin:21-jdk-jammy'
+    entrypoint: bash
+    args: ['-c', 'chmod +x gradlew && ./gradlew build']
+    env: ['GRADLE_USER_HOME=/workspace/.gradle']
+
+  # ── Step 2: Deploy ─────────────────────────────────────────
+  # !! 실제 배포 방식에 맞게 교체하세요 !!
+  # - name: 'gcr.io/cloud-builders/gcloud'
+  #   args: ['run', 'deploy', 'swagger-diff-template', '--region=asia-northeast3', ...]
+
+  # ── Step 3: Swagger diff + notification ────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+          BUCKET="swagger-docs"
+          SERVICE="swagger-diff-template"
+          DEV_SERVER_URL="http://[dev-server-ip]/v3/api-docs"
+          WEBHOOK="https://chat.googleapis.com/v1/spaces/[space-id]/messages?key=[key]&token=[token]"
+          TIMESTAMP=$(date +%Y-%m-%dT%H%M%S)
+
+          # oasdiff 설치
+          curl -sSL "https://github.com/Tufin/oasdiff/releases/download/v1.10.14/oasdiff_Linux_x86_64.tar.gz" \
+            | tar xz -C /usr/local/bin oasdiff
+
+          # 새 스펙 fetch
+          curl -sf "${DEV_SERVER_URL}" -o /workspace/new-spec.json \
+            || { echo "ERROR: spec fetch 실패"; exit 0; }
+
+          # GCS에서 이전 스펙 다운로드 (없으면 최초 배포)
+          if ! gsutil cp "gs://${BUCKET}/${SERVICE}/latest.json" /workspace/old-spec.json 2>/dev/null; then
+            gsutil cp /workspace/new-spec.json "gs://${BUCKET}/${SERVICE}/latest.json"
+            gsutil cp /workspace/new-spec.json "gs://${BUCKET}/${SERVICE}/${TIMESTAMP}-${COMMIT_SHA}.json"
+            MSG="📋 *[${SERVICE}] API Spec 최초 등록*
+
+• 커밋: ${COMMIT_SHA}
+• 시각: ${TIMESTAMP} KST"
+            PAYLOAD=$(printf '%s' "${MSG}" | python3 -c "import sys,json; print(json.dumps({'text':sys.stdin.read()}))")
+            curl -sf --retry 2 --retry-delay 5 --retry-all-errors \
+              -X POST "${WEBHOOK}" -H "Content-Type: application/json" -d "${PAYLOAD}" || true
+            exit 0
+          fi
+
+          # diff 비교
+          CHANGELOG=$(oasdiff changelog /workspace/old-spec.json /workspace/new-spec.json 2>/dev/null || true)
+          [ -z "${CHANGELOG}" ] && { echo "변경 없음"; exit 0; }
+
+          BREAKING=$(oasdiff breaking-changes /workspace/old-spec.json /workspace/new-spec.json 2>/dev/null || true)
+
+          # 메시지 구성
+          MSG="🔔 *[${SERVICE}] API Spec 변경 감지*
+
+• 커밋: ${COMMIT_SHA}
+• 시각: ${TIMESTAMP} KST"
+          [ -n "${BREAKING}" ] && MSG="${MSG}
+
+*Breaking Changes*
+${BREAKING}"
+          MSG="${MSG}
+
+*Changelog*
+${CHANGELOG}"
+
+          # 알람 발송 → 성공 시에만 GCS 저장
+          PAYLOAD=$(printf '%s' "${MSG}" | python3 -c "import sys,json; print(json.dumps({'text':sys.stdin.read()}))")
+          if curl -sf --retry 2 --retry-delay 5 --retry-all-errors \
+            -X POST "${WEBHOOK}" -H "Content-Type: application/json" -d "${PAYLOAD}"; then
+            gsutil cp /workspace/new-spec.json "gs://${BUCKET}/${SERVICE}/latest.json"
+            gsutil cp /workspace/new-spec.json "gs://${BUCKET}/${SERVICE}/${TIMESTAMP}-${COMMIT_SHA}.json"
+          else
+            echo "ERROR: 알람 발송 실패, GCS 저장 skip"
+          fi
+
+          exit 0
+
+timeout: '1200s'
+options:
+  logging: CLOUD_LOGGING_ONLY
