@@ -29,4 +29,18 @@ class SwaggerEndpointTest {
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.info.title").value("Swagger Diff Template API"));
     }
+
+    @Test
+    void sampleHealthEndpointReturns200() throws Exception {
+        mockMvc.perform(get("/api/sample/health"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.status").value("ok"));
+    }
+
+    @Test
+    void apiDocsContainsSampleEndpoint() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+               .andExpect(status().isOk())
+               .andExpect(content().string(org.hamcrest.Matchers.containsString("/api/sample/health")));
+    }
 }
