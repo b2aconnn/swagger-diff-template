@@ -33,8 +33,6 @@ steps:
 
           # GCS에서 이전 스펙 다운로드 (없으면 최초 배포)
           if ! gsutil cp "gs://${BUCKET}/${SERVICE}/latest.json" /workspace/old-spec.json 2>/dev/null; then
-            gsutil cp /workspace/new-spec.json "gs://${BUCKET}/${SERVICE}/latest.json"
-            gsutil cp /workspace/new-spec.json "gs://${BUCKET}/${SERVICE}/${TIMESTAMP}-${COMMIT}.json"
             MSG="📋 *[${SERVICE}] API Spec 최초 등록*
 
 • 커밋: ${COMMIT}
@@ -42,9 +40,11 @@ steps:
             PAYLOAD=$(printf '%s' "${MSG}" | python3 -c "import sys,json; print(json.dumps({'text':sys.stdin.read()}))")
             if curl -sf --retry 2 --retry-delay 5 --retry-all-errors \
               -X POST "${WEBHOOK}" -H "Content-Type: application/json" -d "${PAYLOAD}"; then
+              gsutil cp /workspace/new-spec.json "gs://${BUCKET}/${SERVICE}/latest.json"
+              gsutil cp /workspace/new-spec.json "gs://${BUCKET}/${SERVICE}/${TIMESTAMP}-${COMMIT}.json"
               echo "INFO: 최초 등록 알람 발송 완료"
             else
-              echo "ERROR: 최초 등록 알람 발송 실패"
+              echo "ERROR: 최초 등록 알람 발송 실패, GCS 저장 skip"
             fi
             exit 0
           fi
