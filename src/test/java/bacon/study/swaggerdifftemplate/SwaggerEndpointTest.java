@@ -22,4 +22,11 @@ class SwaggerEndpointTest {
                .andExpect(status().isOk())
                .andExpect(content().contentType("application/json"));
     }
+
+    @Test
+    void apiDocsContainsTitle() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.info.title").value("Swagger Diff Template API"));
+    }
 }
