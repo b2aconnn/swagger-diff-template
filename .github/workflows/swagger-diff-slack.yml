@@ -1,0 +1,129 @@
+name: Swagger Diff & Notify (Slack)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  swagger-diff:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Install oasdiff
+        run: |
+          curl -sSL https://github.com/tufin/oasdiff/releases/download/v1.10.14/oasdiff_1.10.14_linux_amd64.tar.gz \
+            | tar -xz -C /usr/local/bin oasdiff
+
+      - name: Fetch spec, diff, and notify
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          set -euo pipefail
+
+          COMMIT="${GITHUB_SHA:0:7}"
+          TIMESTAMP=$(TZ=Asia/Seoul date +%Y-%m-%dT%H%M%S)
+          CURRENT_SPEC="/tmp/current.json"
+          LATEST_SPEC="specs/latest.json"
+
+          # Boot app in background
+          ./gradlew bootRun > /tmp/bootrun.log 2>&1 &
+          APP_PID=$!
+
+          # Wait for app to be ready (up to 60s)
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/v3/api-docs -o "$CURRENT_SPEC"; then
+              echo "App ready after ${i} attempts"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "App failed to start" >&2
+              cat /tmp/bootrun.log >&2
+              kill "$APP_PID" 2>/dev/null || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+          kill "$APP_PID" 2>/dev/null || true
+
+          send_slack() {
+            local text="$1"
+            local payload
+            payload=$(echo "$text" | python3 -c "import sys,json; print(json.dumps({'text':sys.stdin.read()}))")
+            curl -sf -X POST "$SLACK_WEBHOOK" \
+              -H "Content-Type: application/json" \
+              -d "$payload" \
+              --retry 2 --retry-delay 5 --retry-all-errors
+          }
+
+          save_spec() {
+            mkdir -p specs
+            cp "$CURRENT_SPEC" "$LATEST_SPEC"
+            cp "$CURRENT_SPEC" "specs/${TIMESTAMP}-${COMMIT}.json"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add specs/
+            git commit -m "chore: update swagger spec ${TIMESTAMP} [skip ci]"
+            git push
+          }
+
+          # First run: no previous spec to compare
+          if [ ! -f "$LATEST_SPEC" ]; then
+            MSG="[swagger-diff-template] 최초 배포 API Spec 등록
+커밋: ${COMMIT}
+시각: ${TIMESTAMP} KST"
+            if send_slack "$MSG"; then
+              save_spec
+            else
+              echo "Slack notification failed on first deploy" >&2
+              exit 1
+            fi
+            exit 0
+          fi
+
+          # Diff against stored spec
+          BREAKING=$(oasdiff breaking "$LATEST_SPEC" "$CURRENT_SPEC" 2>/dev/null || true)
+          CHANGELOG=$(oasdiff changelog "$LATEST_SPEC" "$CURRENT_SPEC" 2>/dev/null || true)
+
+          if [ -z "$BREAKING" ] && [ -z "$CHANGELOG" ]; then
+            echo "No API spec changes detected"
+            exit 0
+          fi
+
+          MSG="[swagger-diff-template] API Spec 변경 감지
+커밋: ${COMMIT}
+시각: ${TIMESTAMP} KST"
+
+          if [ -n "$BREAKING" ]; then
+            MSG="${MSG}
+
+[Breaking Changes]
+${BREAKING}"
+          fi
+
+          if [ -n "$CHANGELOG" ]; then
+            MSG="${MSG}
+
+[변경 요약]
+${CHANGELOG}"
+          fi
+
+          if send_slack "$MSG"; then
+            save_spec
+          else
+            echo "Slack notification failed" >&2
+            exit 1
+          fi
