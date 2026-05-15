@@ -82,9 +82,7 @@ jobs:
 
           # First run: no previous spec to compare
           if [ ! -f "$LATEST_SPEC" ]; then
-            MSG="[swagger-diff-template] 최초 배포 API Spec 등록
-커밋: ${COMMIT}
-시각: ${TIMESTAMP} KST"
+            MSG=$(printf '[swagger-diff-template] 최초 배포 API Spec 등록\n커밋: %s\n시각: %s KST' "$COMMIT" "$TIMESTAMP")
             if send_slack "$MSG"; then
               save_spec
             else
@@ -103,22 +101,14 @@ jobs:
             exit 0
           fi
 
-          MSG="[swagger-diff-template] API Spec 변경 감지
-커밋: ${COMMIT}
-시각: ${TIMESTAMP} KST"
+          MSG=$(printf '[swagger-diff-template] API Spec 변경 감지\n커밋: %s\n시각: %s KST' "$COMMIT" "$TIMESTAMP")
 
           if [ -n "$BREAKING" ]; then
-            MSG="${MSG}
-
-[Breaking Changes]
-${BREAKING}"
+            MSG=$(printf '%s\n\n[Breaking Changes]\n%s' "$MSG" "$BREAKING")
           fi
 
           if [ -n "$CHANGELOG" ]; then
-            MSG="${MSG}
-
-[변경 요약]
-${CHANGELOG}"
+            MSG=$(printf '%s\n\n[변경 요약]\n%s' "$MSG" "$CHANGELOG")
           fi
 
           if send_slack "$MSG"; then
