@@ -39,7 +39,7 @@ jobs:
           LATEST_SPEC="specs/latest.json"
 
           # Boot app in background
-          java -jar build/libs/*.jar > /tmp/bootrun.log 2>&1 &
+          java -jar build/libs/$(ls build/libs/ | grep -v plain) > /tmp/bootrun.log 2>&1 &
           APP_PID=$!
 
           # Wait for app to be ready (up to 60s)
