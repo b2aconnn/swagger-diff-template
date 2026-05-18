@@ -11,5 +11,8 @@ public record UserResponse(
         String name,
 
         @Schema(description = "이메일", example = "hong@example.com")
-        String email
+        String email,
+
+        @Schema(description = "역할", example = "USER")
+        String role
 ) {}

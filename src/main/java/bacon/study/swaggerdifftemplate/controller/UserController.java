@@ -14,25 +14,20 @@ public class UserController implements UserApiSpec {
     @Override
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
-        return ResponseEntity.ok(new UserResponse(id, "홍길동", "test@test.com"));
+        return ResponseEntity.ok(new UserResponse(id, "홍길동", "test@test.com", "USER"));
     }
 
     @Override
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@RequestBody UserCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new UserResponse(1L, request.name(), request.email()));
+                .body(new UserResponse(1L, request.name(), request.email(), "USER"));
     }
 
     @Override
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
-        return ResponseEntity.ok(new UserResponse(id, request.name(), request.email()));
+        return ResponseEntity.ok(new UserResponse(id, request.name(), request.email(), "USER"));
     }
 
-    @Override
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        return ResponseEntity.noContent().build();
-    }
 }

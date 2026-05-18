@@ -8,5 +8,8 @@ public record UserCreateRequest(
         String name,
 
         @Schema(description = "이메일", example = "hong@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
-        String email
+        String email,
+
+        @Schema(description = "비밀번호", example = "password1234", requiredMode = Schema.RequiredMode.REQUIRED)
+        String password
 ) {}

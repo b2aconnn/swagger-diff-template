@@ -50,13 +50,4 @@ public interface UserApiSpec {
             UserUpdateRequest request
     );
 
-    @Operation(summary = "회원 삭제")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "삭제 성공"),
-            @ApiResponse(responseCode = "404", description = "회원 없음",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    ResponseEntity<Void> deleteUser(
-            @Parameter(description = "회원 ID", required = true) Long id
-    );
 }
