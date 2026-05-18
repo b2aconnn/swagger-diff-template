@@ -8,5 +8,8 @@ public record UserUpdateRequest(
         String name,
 
         @Schema(description = "이메일", example = "hong@example.com")
-        String email
+        String email,
+
+        @Schema(description = "전화번호", example = "010-1234-5678")
+        String phone
 ) {}

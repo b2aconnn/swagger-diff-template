@@ -15,30 +15,32 @@ public class ProductController implements ProductApiSpec {
 
     @Override
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getProducts() {
+    public ResponseEntity<List<ProductResponse>> getProducts(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size) {
         return ResponseEntity.ok(List.of(
-                new ProductResponse(1L, "MacBook Pro", 2500000, 100),
-                new ProductResponse(2L, "iPhone 15", 1200000, 200)
+                new ProductResponse(1L, "MacBook Pro", 2500000, 100, "전자제품"),
+                new ProductResponse(2L, "iPhone 15", 1200000, 200, "전자제품")
         ));
     }
 
     @Override
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProduct(@PathVariable Long id) {
-        return ResponseEntity.ok(new ProductResponse(id, "MacBook Pro", 2500000, 100));
+        return ResponseEntity.ok(new ProductResponse(id, "MacBook Pro", 2500000, 100, "전자제품"));
     }
 
     @Override
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ProductResponse(1L, request.name(), request.price(), request.stock()));
+                .body(new ProductResponse(1L, request.name(), request.price(), request.stock(), null));
     }
 
     @Override
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody ProductUpdateRequest request) {
-        return ResponseEntity.ok(new ProductResponse(id, request.name(), request.price(), request.stock()));
+        return ResponseEntity.ok(new ProductResponse(id, request.name(), request.price(), request.stock(), null));
     }
 
     @Override

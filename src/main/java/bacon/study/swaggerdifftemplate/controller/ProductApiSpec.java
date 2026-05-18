@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -23,7 +24,10 @@ public interface ProductApiSpec {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(schema = @Schema(implementation = ProductResponse.class)))
     })
-    ResponseEntity<List<ProductResponse>> getProducts();
+    ResponseEntity<List<ProductResponse>> getProducts(
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0") Integer page,
+            @Parameter(description = "페이지 크기", example = "20") Integer size
+    );
 
     @Operation(summary = "상품 상세 조회")
     @ApiResponses({

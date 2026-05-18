@@ -14,5 +14,8 @@ public record ProductResponse(
         Integer price,
 
         @Schema(description = "재고 수량", example = "100")
-        Integer stock
+        Integer stock,
+
+        @Schema(description = "카테고리", example = "전자제품")
+        String category
 ) {}
