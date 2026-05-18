@@ -11,5 +11,8 @@ public record UserCreateRequest(
         String email,
 
         @Schema(description = "비밀번호", example = "password1234", requiredMode = Schema.RequiredMode.REQUIRED)
-        String password
+        String password,
+
+        @Schema(description = "전화번호", example = "010-1234-5678")
+        String phone
 ) {}

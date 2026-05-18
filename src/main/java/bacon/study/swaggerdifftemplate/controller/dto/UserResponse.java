@@ -14,5 +14,8 @@ public record UserResponse(
         String email,
 
         @Schema(description = "역할", example = "USER")
-        String role
+        String role,
+
+        @Schema(description = "가입일시", example = "2026-05-18T13:00:00")
+        String createdAt
 ) {}

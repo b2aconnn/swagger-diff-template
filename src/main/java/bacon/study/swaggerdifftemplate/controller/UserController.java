@@ -12,22 +12,22 @@ import org.springframework.web.bind.annotation.*;
 public class UserController implements UserApiSpec {
 
     @Override
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
-        return ResponseEntity.ok(new UserResponse(id, "홍길동", "test@test.com", "USER"));
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(new UserResponse(userId, "홍길동", "test@test.com", "USER", null));
     }
 
     @Override
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@RequestBody UserCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new UserResponse(1L, request.name(), request.email(), "USER"));
+                .body(new UserResponse(1L, request.name(), request.email(), "USER", null));
     }
 
     @Override
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
-        return ResponseEntity.ok(new UserResponse(id, request.name(), request.email(), "USER"));
+        return ResponseEntity.ok(new UserResponse(id, request.name(), request.email(), "USER", null));
     }
 
 }

@@ -24,7 +24,7 @@ public interface UserApiSpec {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     ResponseEntity<UserResponse> getUser(
-            @Parameter(description = "회원 ID", required = true) Long id
+            @Parameter(description = "회원 ID", required = true) Long userId
     );
 
     @Operation(summary = "회원가입")
