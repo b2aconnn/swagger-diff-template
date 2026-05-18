@@ -1,10 +1,11 @@
 package bacon.study.swaggerdifftemplate.controller;
 
+import bacon.study.swaggerdifftemplate.controller.dto.UserCreateRequest;
+import bacon.study.swaggerdifftemplate.controller.dto.UserResponse;
+import bacon.study.swaggerdifftemplate.controller.dto.UserUpdateRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -12,21 +13,21 @@ public class UserController implements UserApiSpec {
 
     @Override
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getUser(@PathVariable Long id) {
-        return ResponseEntity.ok(Map.of("id", id, "name", "홍길동", "email", "test@test.com"));
+    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
+        return ResponseEntity.ok(new UserResponse(id, "홍길동", "test@test.com"));
     }
 
     @Override
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createUser(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<UserResponse> createUser(@RequestBody UserCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("id", 1, "name", request.getOrDefault("name", ""), "email", request.getOrDefault("email", "")));
+                .body(new UserResponse(1L, request.name(), request.email()));
     }
 
     @Override
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        return ResponseEntity.ok(Map.of("id", id, "name", request.getOrDefault("name", ""), "email", request.getOrDefault("email", "")));
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
+        return ResponseEntity.ok(new UserResponse(id, request.name(), request.email()));
     }
 
     @Override

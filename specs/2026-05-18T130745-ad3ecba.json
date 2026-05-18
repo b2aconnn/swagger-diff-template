@@ -1,0 +1,308 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Swagger Diff Template API",
+        "description": "Template for swagger diff change notification",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Generated server url"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Sample",
+            "description": "Swagger diff \uc2dc\uc5f0\uc6a9 \uc0d8\ud50c API"
+        },
+        {
+            "name": "User",
+            "description": "\ud68c\uc6d0 \uad00\ub9ac API"
+        }
+    ],
+    "paths": {
+        "/api/users/{id}": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "\ud68c\uc6d0 \uc815\ubcf4 \uc870\ud68c",
+                "operationId": "getUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\ud68c\uc6d0 ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "\uc870\ud68c \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "\ud68c\uc6d0 \uc5c6\uc74c",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "\ud68c\uc6d0 \uc815\ubcf4 \uc218\uc815",
+                "operationId": "updateUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\ud68c\uc6d0 ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "\uc218\uc815 \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "\uc798\ubabb\ub41c \uc694\uccad",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "\ud68c\uc6d0 \uc5c6\uc74c",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "\ud68c\uc6d0 \uc0ad\uc81c",
+                "operationId": "deleteUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\ud68c\uc6d0 ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "\uc0ad\uc81c \uc131\uacf5"
+                    },
+                    "404": {
+                        "description": "\ud68c\uc6d0 \uc5c6\uc74c",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "\ud68c\uc6d0\uac00\uc785",
+                "operationId": "createUser",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "\uac00\uc785 \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "\uc798\ubabb\ub41c \uc694\uccad",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/sample/health": {
+            "get": {
+                "tags": [
+                    "Sample"
+                ],
+                "summary": "\ud5ec\uc2a4 \uccb4\ud06c",
+                "description": "\uc11c\ube44\uc2a4 \uc0c1\ud0dc\ub97c \ubc18\ud658\ud55c\ub2e4",
+                "operationId": "health",
+                "responses": {
+                    "200": {
+                        "description": "\uc11c\ube44\uc2a4 \uc815\uc0c1",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "UserUpdateRequest": {
+                "type": "object",
+                "description": "\ud68c\uc6d0 \uc815\ubcf4 \uc218\uc815 \uc694\uccad",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "\uc774\ub984",
+                        "example": "\ud64d\uae38\ub3d9"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "\uc774\uba54\uc77c",
+                        "example": "hong@example.com"
+                    }
+                }
+            },
+            "UserResponse": {
+                "type": "object",
+                "description": "\ud68c\uc6d0 \uc751\ub2f5",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "\ud68c\uc6d0 ID",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "\uc774\ub984",
+                        "example": "\ud64d\uae38\ub3d9"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "\uc774\uba54\uc77c",
+                        "example": "hong@example.com"
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "description": "\uc5d0\ub7ec \uc751\ub2f5",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "\uc5d0\ub7ec \ucf54\ub4dc",
+                        "example": "USER_NOT_FOUND"
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "\uc5d0\ub7ec \uba54\uc2dc\uc9c0",
+                        "example": "\ud574\ub2f9 \ud68c\uc6d0\uc744 \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4."
+                    }
+                }
+            },
+            "UserCreateRequest": {
+                "type": "object",
+                "description": "\ud68c\uc6d0\uac00\uc785 \uc694\uccad",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "\uc774\ub984",
+                        "example": "\ud64d\uae38\ub3d9"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "\uc774\uba54\uc77c",
+                        "example": "hong@example.com"
+                    }
+                },
+                "required": [
+                    "email",
+                    "name"
+                ]
+            }
+        }
+    }
+}

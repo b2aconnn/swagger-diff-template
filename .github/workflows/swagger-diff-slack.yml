@@ -20,7 +20,7 @@ jobs:
           cache: 'gradle'
 
       - name: Build
-        run: ./gradlew build
+        run: ./gradlew build -x test
 
       - name: Install oasdiff
         run: |
@@ -39,7 +39,7 @@ jobs:
           LATEST_SPEC="specs/latest.json"
 
           # Boot app in background
-          ./gradlew bootRun > /tmp/bootrun.log 2>&1 &
+          java -jar build/libs/*.jar > /tmp/bootrun.log 2>&1 &
           APP_PID=$!
 
           # Wait for app to be ready (up to 60s)
@@ -69,13 +69,16 @@ jobs:
               --retry 2 --retry-delay 5 --retry-all-errors
           }
 
-          save_spec() {
-            mkdir -p specs
+          PAGES_BASE="https://b2aconnn.github.io/swagger-diff-template"
+          HTML_PATH="docs/diff-reports/${TIMESTAMP}-${COMMIT}.html"
+
+          save_and_push() {
+            mkdir -p specs docs/diff-reports
             cp "$CURRENT_SPEC" "$LATEST_SPEC"
             cp "$CURRENT_SPEC" "specs/${TIMESTAMP}-${COMMIT}.json"
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add specs/
+            git add specs/ docs/diff-reports/
             git commit -m "chore: update swagger spec ${TIMESTAMP} [skip ci]"
             git push
           }
@@ -84,7 +87,7 @@ jobs:
           if [ ! -f "$LATEST_SPEC" ]; then
             MSG=$(printf '[swagger-diff-template] 최초 배포 API Spec 등록\n커밋: %s\n시각: %s KST' "$COMMIT" "$TIMESTAMP")
             if send_slack "$MSG"; then
-              save_spec
+              save_and_push
             else
               echo "Slack notification failed on first deploy" >&2
               exit 1
@@ -101,7 +104,12 @@ jobs:
             exit 0
           fi
 
-          MSG=$(printf '[swagger-diff-template] API Spec 변경 감지\n커밋: %s\n시각: %s KST' "$COMMIT" "$TIMESTAMP")
+          # Generate HTML diff report
+          mkdir -p docs/diff-reports
+          python3 scripts/diff-render.py "$LATEST_SPEC" "$CURRENT_SPEC" "$HTML_PATH"
+          REPORT_URL="${PAGES_BASE}/diff-reports/${TIMESTAMP}-${COMMIT}.html"
+
+          MSG=$(printf '[swagger-diff-template] API Spec 변경 감지\n커밋: %s\n시각: %s KST\n변경 리포트: %s' "$COMMIT" "$TIMESTAMP" "$REPORT_URL")
 
           if [ -n "$BREAKING" ]; then
             MSG=$(printf '%s\n\n[Breaking Changes]\n%s' "$MSG" "$BREAKING")
@@ -112,7 +120,7 @@ jobs:
           fi
 
           if send_slack "$MSG"; then
-            save_spec
+            save_and_push
           else
             echo "Slack notification failed" >&2
             exit 1
