@@ -24,7 +24,7 @@ jobs:
 
       - name: Install oasdiff
         run: |
-          curl -sSL https://github.com/tufin/oasdiff/releases/download/v1.10.14/oasdiff_1.10.14_linux_amd64.tar.gz \
+          curl -sSL https://github.com/tufin/oasdiff/releases/download/v1.15.3/oasdiff_1.15.3_linux_amd64.tar.gz \
             | tar -xz -C /usr/local/bin oasdiff
 
       - name: Fetch spec, diff, and notify
